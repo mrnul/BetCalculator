@@ -90,7 +90,7 @@ class BetItem(QListWidgetItem):
 class BetCalculator(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('TestApplication')
+        self.setWindowTitle('BetCalculator')
         self.betting_list = QListWidget()
         self.betting_list.doubleClicked.connect(self.on_double_click)
         self.betting_list.itemSelectionChanged.connect(self.on_selection_changed)
