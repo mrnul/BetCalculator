@@ -41,7 +41,7 @@ class TotalBetTotalEarnings(QVBoxLayout):
 
 # a layout to hold combinations, bet per combination, const of combination and earnings of combination
 class CombinationInformation(QHBoxLayout):
-    def __init__(self, line_title):
+    def __init__(self, line_title, parent):
         super().__init__()
         self.label = QLabel(line_title)  # combination ID
         self.line_edit = QLineEdit()  # bet for that combination
@@ -50,6 +50,14 @@ class CombinationInformation(QHBoxLayout):
         self.addWidget(self.label, 10)
         self.addWidget(self.line_edit, 10)
         self.addWidget(self.result, 80)
+
+        self.line_edit.textChanged.connect(self.on_line_edit_change)
+
+        self.the_parent = parent
+
+    def on_line_edit_change(self):
+        if hasattr(self.the_parent, 'on_calculate_click'):
+            self.the_parent.on_calculate_click()
 
     def get_bet_str(self):
         return self.line_edit.text()
@@ -87,6 +95,7 @@ class BetCalculator(QWidget):
         self.betting_list.doubleClicked.connect(self.on_double_click)
         self.betting_list.itemSelectionChanged.connect(self.on_selection_changed)
         self.betting_list.itemDoubleClicked.connect(self.on_double_click)
+        self.betting_list.itemChanged.connect(self.on_bet_change)
         self.betting_list.setSelectionMode(self.betting_list.selectionMode().ExtendedSelection)
         self.betting_list.setMinimumHeight(200)
 
@@ -98,7 +107,7 @@ class BetCalculator(QWidget):
         self.add_button.setEnabled(False)
 
         self.rate_input = QLineEdit()
-        self.rate_input.textChanged.connect(self.on_bet_change)
+        self.rate_input.textChanged.connect(self.on_rate_input_change)
         self.rate_input.returnPressed.connect(self.on_rate_input_return)
 
         self.delete_button = QPushButton('Delete')
@@ -139,6 +148,7 @@ class BetCalculator(QWidget):
             del self.combinations_info[-1]
         self.rate_input.setEnabled(self.betting_list.count() < MAX_ELEMENTS_C)
         self.add_button.setEnabled(self.betting_list.count() < MAX_ELEMENTS_C)
+        self.on_calculate_click()
 
     def on_add_click(self):
         self.rate_input.setEnabled(self.betting_list.count() < MAX_ELEMENTS_C)
@@ -146,10 +156,14 @@ class BetCalculator(QWidget):
         if self.add_button.isEnabled():
             self.betting_list.addItem(BetItem(self.rate_input.text()))
             self.rate_input.clear()
-            self.combinations_info.append(CombinationInformation(f'Bet #{self.betting_list.count()}'))
+            self.combinations_info.append(CombinationInformation(f'Bet #{self.betting_list.count()}', self))
             self.combinations_layout.addLayout(self.combinations_info[-1])
+        self.on_calculate_click()
 
     def on_bet_change(self):
+        self.on_calculate_click()
+
+    def on_rate_input_change(self):
         self.rate_input.setEnabled(self.betting_list.count() < MAX_ELEMENTS_C)
         self.add_button.setEnabled(self.betting_list.count() < MAX_ELEMENTS_C)
         if self.betting_list.count() < MAX_ELEMENTS_C:
